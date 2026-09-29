@@ -1,13 +1,77 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-function ChatWindow({ selectedUser, currentUser }) {
+function ChatWindow({
+  selectedUser,
+  currentUser,
+  socket
+}) {
 
   const [message, setMessage] = useState("");
 
   const [messages, setMessages] = useState([]);
 
   const messagesEndRef = useRef(null);
+
+
+  // Listen for real-time messages
+  useEffect(() => {
+
+    if (!socket || !currentUser || !selectedUser) {
+      return;
+    }
+
+
+    const handleReceiveMessage = (newMessage) => {
+
+      console.log(
+        "New real-time message:",
+        newMessage
+      );
+
+
+      // Check whether message belongs to
+      // the currently selected conversation
+      if (
+        newMessage.sender === selectedUser._id &&
+        newMessage.receiver === currentUser._id
+      ) {
+
+        setMessages((previousMessages) => [
+
+          ...previousMessages,
+
+          {
+            id: newMessage._id,
+            sender: selectedUser.name,
+            text: newMessage.text,
+            createdAt: newMessage.createdAt
+          }
+
+        ]);
+
+      }
+
+    };
+
+
+    socket.on(
+      "receive_message",
+      handleReceiveMessage
+    );
+
+
+    // Remove listener when selected chat changes
+    return () => {
+
+      socket.off(
+        "receive_message",
+        handleReceiveMessage
+      );
+
+    };
+
+  }, [socket, selectedUser, currentUser]);
 
 
   // Get messages from MongoDB
@@ -17,40 +81,47 @@ function ChatWindow({ selectedUser, currentUser }) {
       return;
     }
 
+
     axios
       .get(
         `http://localhost:5000/api/messages/${currentUser._id}/${selectedUser._id}`
       )
       .then((response) => {
 
-        const formattedMessages = response.data.map((item) => ({
+        const formattedMessages = response.data.map(
+          (item) => ({
 
-          id: item._id,
+            id: item._id,
 
-          sender:
-            item.sender === currentUser._id
-              ? "You"
-              : selectedUser.name,
+            sender:
+              item.sender === currentUser._id
+                ? "You"
+                : selectedUser.name,
 
-          text: item.text,
+            text: item.text,
 
-          createdAt: item.createdAt
+            createdAt: item.createdAt
 
-        }));
+          })
+        );
+
 
         setMessages(formattedMessages);
 
       })
       .catch((error) => {
 
-        console.error("Error fetching messages:", error);
+        console.error(
+          "Error fetching messages:",
+          error
+        );
 
       });
 
   }, [selectedUser, currentUser]);
 
 
-  // Scroll to the latest message
+  // Scroll to latest message
   useEffect(() => {
 
     messagesEndRef.current?.scrollIntoView({
@@ -67,6 +138,7 @@ function ChatWindow({ selectedUser, currentUser }) {
       return;
     }
 
+
     try {
 
       const response = await axios.post(
@@ -78,21 +150,29 @@ function ChatWindow({ selectedUser, currentUser }) {
         }
       );
 
-      setMessages([
-        ...messages,
+
+      setMessages((previousMessages) => [
+
+        ...previousMessages,
+
         {
           id: response.data._id,
           sender: "You",
           text: response.data.text,
           createdAt: response.data.createdAt
         }
+
       ]);
+
 
       setMessage("");
 
     } catch (error) {
 
-      console.error("Error sending message:", error);
+      console.error(
+        "Error sending message:",
+        error
+      );
 
     }
 
@@ -131,9 +211,17 @@ function ChatWindow({ selectedUser, currentUser }) {
           {selectedUser.name.charAt(0)}
         </div>
 
+
         <div>
-          <h3>{selectedUser.name}</h3>
-          <p>{selectedUser.status}</p>
+
+          <h3>
+            {selectedUser.name}
+          </h3>
+
+          <p>
+            {selectedUser.status}
+          </p>
+
         </div>
 
       </div>
@@ -154,7 +242,10 @@ function ChatWindow({ selectedUser, currentUser }) {
             }`}
           >
 
-            <p>{message.text}</p>
+            <p>
+              {message.text}
+            </p>
+
 
             <span className="message-time">
               {formatTime(message.createdAt)}
@@ -164,7 +255,6 @@ function ChatWindow({ selectedUser, currentUser }) {
 
         ))}
 
-        {/* Invisible element used for scrolling */}
 
         <div ref={messagesEndRef}></div>
 
@@ -182,6 +272,7 @@ function ChatWindow({ selectedUser, currentUser }) {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
         />
+
 
         <button onClick={handleSend}>
           Send

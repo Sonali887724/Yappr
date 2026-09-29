@@ -26,6 +26,7 @@ function Sidebar({ users, selectedUser, setSelectedUser }) {
 
       </div>
 
+
       {/* User List */}
 
       <div className="user-list">
@@ -33,9 +34,9 @@ function Sidebar({ users, selectedUser, setSelectedUser }) {
         {filteredUsers.map((user) => (
 
           <div
-            key={user.id}
+            key={user._id}
             className={`user ${
-              selectedUser.id === user.id
+              selectedUser && selectedUser._id === user._id
                 ? "selected-user"
                 : ""
             }`}
