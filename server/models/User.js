@@ -7,6 +7,17 @@ const userSchema = new mongoose.Schema(
       required: true
     },
 
+    email: {
+      type: String,
+      required: true,
+      unique: true
+    },
+
+    password: {
+      type: String,
+      required: true
+    },
+
     status: {
       type: String,
       default: "Offline"

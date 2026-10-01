@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
 
 import "./App.css";
 
-function App() {
+
+function ChatApp() {
 
   const [users, setUsers] = useState([]);
 
@@ -18,29 +27,72 @@ function App() {
   const [socket, setSocket] = useState(null);
 
 
-  // Get users from backend
+  // Get logged-in user from localStorage
   useEffect(() => {
 
+    const savedUser =
+      localStorage.getItem("user");
+
+
+    if (savedUser) {
+
+      setCurrentUser(
+        JSON.parse(savedUser)
+      );
+
+    }
+
+  }, []);
+
+
+  // Get users from backend
+  // This runs only after currentUser is loaded
+  useEffect(() => {
+
+    if (!currentUser) {
+      return;
+    }
+
+
+    const token =
+      localStorage.getItem("token");
+
+
+    if (!token) {
+      return;
+    }
+
+
     axios
-      .get("http://localhost:5000/api/users")
+      .get(
+        "http://localhost:5000/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
       .then((response) => {
 
-        setUsers(response.data);
-
-        const loggedInUser = response.data.find(
-          (user) => user.name === "Rahul"
+        console.log(
+          "Users fetched successfully:",
+          response.data
         );
 
-        setCurrentUser(loggedInUser);
+
+        setUsers(response.data);
 
       })
       .catch((error) => {
 
-        console.error("Error fetching users:", error);
+        console.error(
+          "Error fetching users:",
+          error
+        );
 
       });
 
-  }, []);
+  }, [currentUser]);
 
 
   // Create ONE Socket.IO connection
@@ -57,10 +109,10 @@ function App() {
     );
 
 
-    const newSocket = io("http://localhost:5000");
+    const newSocket =
+      io("http://localhost:5000");
 
 
-    // Save socket in state
     setSocket(newSocket);
 
 
@@ -74,63 +126,71 @@ function App() {
 
 
       // Join current user's room
-      newSocket.emit("join", currentUser._id);
+      newSocket.emit(
+        "join",
+        currentUser._id
+      );
 
     });
 
 
     // Listen for status changes
-    newSocket.on("user_status_changed", (data) => {
+    newSocket.on(
+      "user_status_changed",
+      (data) => {
 
-      console.log(
-        "Status changed:",
-        data.userId,
-        data.status
-      );
-
-
-      // Update users list
-      setUsers((previousUsers) =>
-        previousUsers.map((user) =>
-          user._id === data.userId
-            ? {
-                ...user,
-                status: data.status
-              }
-            : user
-        )
-      );
+        console.log(
+          "Status changed:",
+          data.userId,
+          data.status
+        );
 
 
-      // Update selected user's status
-      setSelectedUser((previousUser) => {
-
-        if (
-          previousUser &&
-          previousUser._id === data.userId
-        ) {
-
-          return {
-            ...previousUser,
-            status: data.status
-          };
-
-        }
-
-        return previousUser;
-
-      });
-
-    });
+        // Update users list
+        setUsers((previousUsers) =>
+          previousUsers.map((user) =>
+            user._id === data.userId
+              ? {
+                  ...user,
+                  status: data.status
+                }
+              : user
+          )
+        );
 
 
-    // Cleanup
+        // Update selected user's status
+        setSelectedUser((previousUser) => {
+
+          if (
+            previousUser &&
+            previousUser._id === data.userId
+          ) {
+
+            return {
+              ...previousUser,
+              status: data.status
+            };
+
+          }
+
+
+          return previousUser;
+
+        });
+
+      }
+    );
+
+
+    // Cleanup Socket.IO connection
     return () => {
 
       console.log(
         "Disconnecting Socket.IO for:",
         currentUser.name
       );
+
 
       newSocket.disconnect();
 
@@ -144,7 +204,10 @@ function App() {
   // Select first chat user
   useEffect(() => {
 
-    if (!currentUser || users.length === 0) {
+    if (
+      !currentUser ||
+      users.length === 0
+    ) {
       return;
     }
 
@@ -154,27 +217,52 @@ function App() {
     }
 
 
-    const firstChatUser = users.find(
-      (user) => user._id !== currentUser._id
-    );
+    const firstChatUser =
+      users.find(
+        (user) =>
+          user._id !== currentUser._id
+      );
 
 
-    setSelectedUser(firstChatUser);
+    if (firstChatUser) {
 
-  }, [currentUser, users, selectedUser]);
+      setSelectedUser(
+        firstChatUser
+      );
+
+    }
+
+  }, [
+    currentUser,
+    users,
+    selectedUser
+  ]);
 
 
-  // Change current user
-  const handleUserChange = (e) => {
+  // Logout
+  const handleLogout = () => {
 
-    const user = users.find(
-      (user) => user._id === e.target.value
-    );
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("user");
 
 
-    setCurrentUser(user);
+    if (socket) {
+
+      socket.disconnect();
+
+    }
+
+
+    setCurrentUser(null);
 
     setSelectedUser(null);
+
+    setSocket(null);
+
+
+    window.location.href =
+      "/login";
 
   };
 
@@ -182,55 +270,149 @@ function App() {
   return (
     <div className="app">
 
-      {/* Temporary current user selector */}
+      {/* Logged-in user */}
 
-      <div className="current-user-selector">
+      {currentUser && (
 
-        <label>
-          Logged in as:
-        </label>
+        <div className="current-user-selector">
+
+          <label>
+            Logged in as:
+          </label>
 
 
-        <select
-          value={currentUser?._id || ""}
-          onChange={handleUserChange}
-        >
+          <strong>
+            {currentUser.name}
+          </strong>
 
-          {users.map((user) => (
 
-            <option
-              key={user._id}
-              value={user._id}
-            >
-              {user.name}
-            </option>
+          <button
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
 
-          ))}
+        </div>
 
-        </select>
-
-      </div>
+      )}
 
 
       <Sidebar
         users={users.filter(
-          (user) => user._id !== currentUser?._id
+          (user) =>
+            user._id !== currentUser?._id
         )}
         selectedUser={selectedUser}
-        setSelectedUser={setSelectedUser}
+        setSelectedUser={
+          setSelectedUser
+        }
       />
 
 
-      {selectedUser && currentUser && (
-        <ChatWindow
-          selectedUser={selectedUser}
-          currentUser={currentUser}
-          socket={socket}
-        />
-      )}
+      {selectedUser &&
+        currentUser && (
+
+          <ChatWindow
+            selectedUser={
+              selectedUser
+            }
+            currentUser={
+              currentUser
+            }
+            socket={socket}
+          />
+
+        )}
 
     </div>
   );
 }
+
+
+/*
+  Protected Route
+
+  This checks whether the user
+  has logged in before allowing
+  access to the chat.
+*/
+function ProtectedRoute({
+  children
+}) {
+
+  const token =
+    localStorage.getItem("token");
+
+
+  if (!token) {
+
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+
+  }
+
+
+  return children;
+}
+
+
+function App() {
+
+  return (
+    <BrowserRouter>
+
+      <Routes>
+
+        {/* Protected Chat */}
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <ChatApp />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* Register */}
+
+        <Route
+          path="/register"
+          element={
+            <Register />
+          }
+        />
+
+
+        {/* Login */}
+
+        <Route
+          path="/login"
+          element={
+            <Login />
+          }
+        />
+
+
+        {/* Unknown URL */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate to="/" />
+          }
+        />
+
+      </Routes>
+
+    </BrowserRouter>
+  );
+}
+
 
 export default App;

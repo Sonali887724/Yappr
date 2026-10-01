@@ -3,10 +3,13 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const connectDB = require("./config/db");
 const User = require("./models/User");
 const Message = require("./models/Message");
+const authMiddleware = require("./middleware/authMiddleware");
 
 // Load environment variables
 dotenv.config();
@@ -40,19 +43,122 @@ app.get("/", (req, res) => {
 
 
 // Get all users
-app.get("/api/users", async (req, res) => {
+// Get all users
+// Protected route
+app.get(
+  "/api/users",
+  authMiddleware,
+  async (req, res) => {
+
+    try {
+
+      const users = await User.find();
+
+      res.json(users);
+
+    } catch (error) {
+
+      console.error(
+        "Error fetching users:",
+        error.message
+      );
+
+
+      res.status(500).json({
+
+        message: "Failed to fetch users",
+
+        error: error.message
+
+      });
+
+    }
+
+  }
+);
+
+// Register a new user
+app.post("/api/auth/register", async (req, res) => {
 
   try {
 
-    const users = await User.find();
+    const { name, email, password } = req.body;
 
-    res.json(users);
+
+    if (!name || !email || !password) {
+
+      return res.status(400).json({
+        message: "Name, email and password are required"
+      });
+
+    }
+
+
+    const existingUser = await User.findOne({
+      email
+    });
+
+
+    if (existingUser) {
+
+      return res.status(400).json({
+        message: "Email already registered"
+      });
+
+    }
+
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
+
+
+    const user = new User({
+
+      name,
+
+      email,
+
+      password: hashedPassword,
+
+      status: "Offline"
+
+    });
+
+
+    const savedUser = await user.save();
+
+
+    const userResponse = {
+
+      _id: savedUser._id,
+
+      name: savedUser.name,
+
+      email: savedUser.email,
+
+      status: savedUser.status
+
+    };
+
+
+    res.status(201).json({
+
+      message: "User registered successfully",
+
+      user: userResponse
+
+    });
 
   } catch (error) {
 
     res.status(500).json({
-      message: "Failed to fetch users",
+
+      message: "Failed to register user",
+
       error: error.message
+
     });
 
   }
@@ -60,27 +166,98 @@ app.get("/api/users", async (req, res) => {
 });
 
 
-// Create a new user
-app.post("/api/users", async (req, res) => {
+// Login user
+app.post("/api/auth/login", async (req, res) => {
 
   try {
 
-    const { name, status } = req.body;
+    const { email, password } = req.body;
 
-    const user = new User({
-      name,
-      status
+
+    if (!email || !password) {
+
+      return res.status(400).json({
+        message: "Email and password are required"
+      });
+
+    }
+
+
+    const user = await User.findOne({
+      email
     });
 
-    const savedUser = await user.save();
 
-    res.status(201).json(savedUser);
+    if (!user) {
+
+      return res.status(401).json({
+        message: "Invalid email or password"
+      });
+
+    }
+
+
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+
+    if (!passwordMatch) {
+
+      return res.status(401).json({
+        message: "Invalid email or password"
+      });
+
+    }
+
+
+    const token = jwt.sign(
+
+      {
+        userId: user._id
+      },
+
+      process.env.JWT_SECRET,
+
+      {
+        expiresIn: "1d"
+      }
+
+    );
+
+
+    const userResponse = {
+
+      _id: user._id,
+
+      name: user.name,
+
+      email: user.email,
+
+      status: user.status
+
+    };
+
+
+    res.json({
+
+      message: "Login successful",
+
+      token,
+
+      user: userResponse
+
+    });
 
   } catch (error) {
 
     res.status(500).json({
-      message: "Failed to create user",
+
+      message: "Login failed",
+
       error: error.message
+
     });
 
   }
@@ -89,82 +266,144 @@ app.post("/api/users", async (req, res) => {
 
 
 // Send a message
-app.post("/api/messages", async (req, res) => {
+// Protected route
+// Send a message
+// Protected route
+app.post(
+  "/api/messages",
+  authMiddleware,
+  async (req, res) => {
 
-  try {
+    try {
 
-    const { sender, receiver, text } = req.body;
-
-    const message = new Message({
-      sender,
-      receiver,
-      text
-    });
-
-    const savedMessage = await message.save();
-
-
-    // Send message to receiver
-    io.to(receiver).emit(
-      "receive_message",
-      savedMessage
-    );
+      // Get receiver and message text
+      // Sender will come from JWT
+      const {
+        receiver,
+        text
+      } = req.body;
 
 
-    res.status(201).json(savedMessage);
+      // Get logged-in user's ID
+      // from the verified JWT token
+      const sender = req.user.userId;
 
-  } catch (error) {
 
-    res.status(500).json({
-      message: "Failed to send message",
-      error: error.message
-    });
+      // Check required fields
+      if (!receiver || !text) {
+
+        return res.status(400).json({
+          message: "Receiver and message text are required"
+        });
+
+      }
+
+
+      // Create message
+      const message = new Message({
+
+        sender,
+
+        receiver,
+
+        text
+
+      });
+
+
+      // Save message in MongoDB
+      const savedMessage =
+        await message.save();
+
+
+      // Send message to receiver
+      io.to(receiver).emit(
+        "receive_message",
+        savedMessage
+      );
+
+
+      // Send saved message back to sender
+      res.status(201).json(
+        savedMessage
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error sending message:",
+        error.message
+      );
+
+
+      res.status(500).json({
+
+        message: "Failed to send message",
+
+        error: error.message
+
+      });
+
+    }
 
   }
-
-});
+);
 
 
 // Get messages between two users
-app.get("/api/messages/:user1/:user2", async (req, res) => {
+// Protected route
+app.get(
+  "/api/messages/:user1/:user2",
+  authMiddleware,
+  async (req, res) => {
 
-  try {
+    try {
 
-    const { user1, user2 } = req.params;
-
-    const messages = await Message.find({
-
-      $or: [
-
-        {
-          sender: user1,
-          receiver: user2
-        },
-
-        {
-          sender: user2,
-          receiver: user1
-        }
-
-      ]
-
-    }).sort({
-      createdAt: 1
-    });
+      const {
+        user1,
+        user2
+      } = req.params;
 
 
-    res.json(messages);
+      const messages = await Message.find({
 
-  } catch (error) {
+        $or: [
 
-    res.status(500).json({
-      message: "Failed to fetch messages",
-      error: error.message
-    });
+          {
+            sender: user1,
+            receiver: user2
+          },
+
+          {
+            sender: user2,
+            receiver: user1
+          }
+
+        ]
+
+      }).sort({
+
+        createdAt: 1
+
+      });
+
+
+      res.json(messages);
+
+    } catch (error) {
+
+      res.status(500).json({
+
+        message: "Failed to fetch messages",
+
+        error: error.message
+
+      });
+
+    }
 
   }
-
-});
+);
 
 
 // Socket.IO connection
@@ -181,7 +420,6 @@ io.on("connection", (socket) => {
 
     try {
 
-      // Save user ID on this socket
       socket.userId = userId;
 
 
@@ -196,28 +434,36 @@ io.on("connection", (socket) => {
 
       // Make user Online
       await User.findByIdAndUpdate(
+
         userId,
+
         {
           status: "Online"
         }
+
       );
 
 
-      // Tell everyone that user is Online
-      io.emit("user_status_changed", {
+      // Tell everyone
+      io.emit(
+        "user_status_changed",
+        {
 
-        userId: userId,
+          userId: userId,
 
-        status: "Online"
+          status: "Online"
 
-      });
-
+        }
+      );
 
     } catch (error) {
 
       console.error(
+
         "Error updating online status:",
+
         error.message
+
       );
 
     }
@@ -235,26 +481,20 @@ io.on("connection", (socket) => {
 
 
     if (!socket.userId) {
+
       return;
+
     }
 
 
     try {
 
-      /*
-       * Check whether this user still has
-       * another Socket.IO connection.
-       */
+      // Check whether another connection
+      // for this user still exists
+      const sockets = await io
+        .in(socket.userId)
+        .fetchSockets();
 
-      const sockets = await io.in(
-        socket.userId
-      ).fetchSockets();
-
-
-      /*
-       * If another socket still exists,
-       * the user is still Online.
-       */
 
       if (sockets.length > 0) {
 
@@ -267,16 +507,15 @@ io.on("connection", (socket) => {
       }
 
 
-      /*
-       * No sockets remain.
-       * Now the user is actually Offline.
-       */
-
+      // No connections remain
       await User.findByIdAndUpdate(
+
         socket.userId,
+
         {
           status: "Offline"
         }
+
       );
 
 
@@ -286,20 +525,25 @@ io.on("connection", (socket) => {
 
 
       // Tell everyone
-      io.emit("user_status_changed", {
+      io.emit(
+        "user_status_changed",
+        {
 
-        userId: socket.userId,
+          userId: socket.userId,
 
-        status: "Offline"
+          status: "Offline"
 
-      });
-
+        }
+      );
 
     } catch (error) {
 
       console.error(
+
         "Error updating offline status:",
+
         error.message
+
       );
 
     }

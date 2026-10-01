@@ -14,6 +14,18 @@ function ChatWindow({
   const messagesEndRef = useRef(null);
 
 
+  // Get JWT token
+  const token = localStorage.getItem("token");
+
+
+  // Axios configuration for protected requests
+  const authConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  };
+
+
   // Listen for real-time messages
   useEffect(() => {
 
@@ -61,7 +73,6 @@ function ChatWindow({
     );
 
 
-    // Remove listener when selected chat changes
     return () => {
 
       socket.off(
@@ -84,7 +95,8 @@ function ChatWindow({
 
     axios
       .get(
-        `http://localhost:5000/api/messages/${currentUser._id}/${selectedUser._id}`
+        `http://localhost:5000/api/messages/${currentUser._id}/${selectedUser._id}`,
+        authConfig
       )
       .then((response) => {
 
@@ -142,12 +154,17 @@ function ChatWindow({
     try {
 
       const response = await axios.post(
+
         "http://localhost:5000/api/messages",
+
         {
           sender: currentUser._id,
           receiver: selectedUser._id,
           text: message
-        }
+        },
+
+        authConfig
+
       );
 
 
