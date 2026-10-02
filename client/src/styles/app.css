@@ -1,0 +1,167 @@
+/* =========================================
+   YAPPR - MAIN APP
+   Pastel Lavender Premium Theme
+========================================= */
+
+:root {
+  --lavender-bg: #d9c7f2;
+
+  --purple-dark: #5f3b91;
+  --purple: #8d57d1;
+  --purple-light: #b995e5;
+
+  --text-dark: #49346b;
+  --text-medium: #80699d;
+  --text-light: #a596b8;
+
+  --white: #ffffff;
+  --cream: #fffdfd;
+
+  --border: #e5d5f4;
+  --border-light: #eee4f7;
+
+  --received: #f5edfb;
+  --sent: #8b54cc;
+
+  --online: #2ed783;
+  --offline: #b9afc3;
+
+  --shadow-main:
+    0 22px 55px rgba(91, 58, 140, 0.18);
+
+  --shadow-soft:
+    0 10px 28px rgba(105, 72, 145, 0.10);
+
+  --shadow-purple:
+    0 10px 24px rgba(126, 75, 190, 0.22);
+}
+
+
+/* =========================================
+   GLOBAL
+========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at 10% 15%,
+      rgba(255, 255, 255, 0.55),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(190, 157, 235, 0.45),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 80% 90%,
+      rgba(255, 255, 255, 0.30),
+      transparent 25%
+    ),
+    linear-gradient(
+      135deg,
+      #d9c7f2,
+      #cbb3ea
+    );
+
+  color: var(--text-dark);
+}
+
+
+/* =========================================
+   MAIN APP
+========================================= */
+
+.app {
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  gap: 0;
+  padding: 18px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 5% 80%,
+      rgba(255, 255, 255, 0.35),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 95% 15%,
+      rgba(183, 145, 231, 0.25),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #d9c7f2,
+      #cbb3ea
+    );
+}
+
+
+/* =========================================
+   IMPORTANT CHAT LAYOUT
+========================================= */
+
+.app > .sidebar {
+  flex: 0 0 310px;
+  height: 100%;
+
+  min-height: 0;
+}
+
+.app > .chat-window {
+  flex: 1 1 0;
+
+  width: auto;
+  height: 100%;
+
+  min-width: 0;
+  min-height: 0;
+}
+
+
+/* =========================================
+   COMMON BUTTON RESET
+========================================= */
+
+button {
+  font-family: inherit;
+}
+
+
+/* =========================================
+   SELECTION
+========================================= */
+
+::selection {
+  background: #d9c2f0;
+  color: #543779;
+}

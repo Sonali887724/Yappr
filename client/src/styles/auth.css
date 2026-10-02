@@ -1,0 +1,688 @@
+/* =========================================
+   YAPPR - CUTE PURPLE AUTH UI
+========================================= */
+
+.auth-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  box-sizing: border-box;
+
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      #e3d1ff,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      #d5bdf5,
+      transparent 35%
+    ),
+    #bca3dc;
+}
+
+
+/* =========================================
+   DECORATIONS
+========================================= */
+
+.auth-decoration {
+  position: absolute;
+
+  pointer-events: none;
+
+  user-select: none;
+}
+
+
+/* Clouds */
+
+.cloud {
+  font-size: 65px;
+
+  color: #fff7f3;
+
+  opacity: 0.9;
+
+  filter:
+    drop-shadow(
+      0 8px 10px rgba(80, 50, 100, 0.15)
+    );
+}
+
+.cloud-one {
+  left: 5%;
+  top: 18%;
+}
+
+.cloud-two {
+  right: 7%;
+  top: 27%;
+
+  font-size: 50px;
+}
+
+
+/* Flowers */
+
+.flower {
+  font-size: 70px;
+
+  filter:
+    drop-shadow(
+      0 8px 10px rgba(80, 50, 100, 0.15)
+    );
+}
+
+.flower-one {
+  right: 5%;
+  bottom: 8%;
+}
+
+
+/* =========================================
+   MAIN CARD
+========================================= */
+
+.auth-card {
+  width: 100%;
+
+  max-width: 445px;
+
+  min-height: 760px;
+
+  padding: 38px 30px 28px;
+
+  box-sizing: border-box;
+
+  position: relative;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fffaf7,
+      #f6e9e3
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+
+  border-radius: 42px;
+
+  box-shadow:
+    0 30px 70px
+    rgba(78, 48, 105, 0.30),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.9);
+
+  z-index: 2;
+}
+
+
+/* =========================================
+   HEART
+========================================= */
+
+.auth-heart {
+  width: 42px;
+  height: 42px;
+
+  margin: 0 auto 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 27px;
+
+  color: #ef8791;
+
+  text-shadow:
+    0 4px 8px rgba(210, 90, 110, 0.25);
+}
+
+
+/* =========================================
+   HEADING
+========================================= */
+
+.auth-heading {
+  text-align: center;
+
+  position: relative;
+  z-index: 10;
+}
+
+.auth-heading h1 {
+  margin: 0;
+
+  font-size: 34px;
+
+  font-weight: 800;
+
+  letter-spacing: -1px;
+
+  color: #684b9c;
+
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.auth-heading h1::before {
+  content: "✨";
+
+  font-size: 18px;
+
+  margin-right: 8px;
+
+  vertical-align: middle;
+}
+
+.auth-heading h1::after {
+  content: "✨";
+
+  font-size: 18px;
+
+  margin-left: 8px;
+
+  vertical-align: middle;
+}
+
+.auth-heading p {
+  margin: 7px 0 0;
+
+  font-size: 14px;
+
+  color: #786d83;
+}
+
+
+/* =========================================
+   CHARACTER
+========================================= */
+
+/* =========================================
+   3D YAPPR GIRL
+========================================= */
+
+.auth-character {
+  height: 380px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  position: relative;
+
+  margin-top: 15px;
+
+  overflow: visible;
+
+  z-index: 2;
+}
+
+/* Soft glow behind character */
+
+.auth-character::before {
+  content: "";
+
+  position: absolute;
+
+  width: 210px;
+  height: 130px;
+
+  bottom: 20px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(174, 137, 226, 0.35),
+    transparent 70%
+  );
+
+  filter: blur(15px);
+
+  z-index: -1;
+}
+
+/* Actual 3D character */
+
+.yappr-girl {
+  width: 430px;
+
+  max-width: 120%;
+
+  height: auto;
+
+  display: block;
+
+  position: relative;
+
+  top: 0;
+
+  filter: drop-shadow(
+    0 10px 15px rgba(100, 70, 120, 0.12)
+  );
+}
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.auth-form-card {
+  margin-top: -5px;
+
+  padding: 22px 18px 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fffdfb,
+      #f7ebe6
+    );
+
+  border-radius: 30px;
+
+  box-shadow:
+    0 12px 30px
+    rgba(100, 70, 100, 0.13),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.9);
+
+  position: relative;
+
+  z-index: 4;
+}
+
+/* =========================================
+   INPUT
+========================================= */
+
+.auth-input-wrapper {
+  height: 54px;
+
+  display: flex;
+
+  align-items: center;
+
+  margin-bottom: 13px;
+
+  padding: 0 13px 0 7px;
+
+  box-sizing: border-box;
+
+  background: #fff8f5;
+
+  border: 1px solid #eadbd7;
+
+  border-radius: 30px;
+
+  box-shadow:
+    0 4px 10px
+    rgba(100, 70, 100, 0.08),
+
+    inset 0 1px 2px
+    rgba(255, 255, 255, 0.8);
+
+  transition: all 0.2s ease;
+}
+
+.auth-input-wrapper:focus-within {
+  border-color: #ad8bdd;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(157, 119, 210, 0.13),
+
+    0 5px 15px
+    rgba(100, 70, 100, 0.08);
+}
+
+
+/* Input icon */
+
+.auth-input-icon {
+  width: 42px;
+  height: 42px;
+
+  min-width: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #b897e7,
+      #9874d0
+    );
+
+  font-size: 19px;
+
+  box-shadow:
+    0 4px 8px
+    rgba(116, 82, 170, 0.25);
+}
+
+
+/* Actual input */
+
+.auth-input-wrapper input {
+  flex: 1;
+
+  width: 100%;
+
+  min-width: 0;
+
+  margin-left: 12px;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color: #5f536c;
+
+  font-size: 13px;
+}
+
+.auth-input-wrapper input::placeholder {
+  color: #918693;
+}
+
+
+/* Password eye */
+
+.password-eye {
+  margin-left: 8px;
+
+  color: #8e8194;
+
+  font-size: 16px;
+}
+
+
+/* =========================================
+   FORGOT PASSWORD
+========================================= */
+
+.forgot-password {
+  margin: 2px 4px 16px;
+
+  text-align: right;
+
+  color: #76549d;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   LOGIN BUTTON
+========================================= */
+
+.auth-button {
+  width: 100%;
+
+  height: 55px;
+
+  border: none;
+
+  border-radius: 30px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #a77bdf,
+      #8f69cb
+    );
+
+  color: white;
+
+  font-size: 19px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 15px
+    rgba(126, 88, 177, 0.30),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.35);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 11px 20px
+    rgba(126, 88, 177, 0.35);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
+
+.auth-error {
+  margin-bottom: 14px;
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background: #fff0f0;
+
+  border: 1px solid #f1cccc;
+
+  color: #c75c65;
+
+  font-size: 12px;
+
+  text-align: center;
+}
+
+
+/* =========================================
+   DIVIDER
+========================================= */
+
+.auth-divider {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin: 20px 0 14px;
+}
+
+.auth-divider span {
+  flex: 1;
+
+  height: 1px;
+
+  background: #d9caca;
+}
+
+.auth-divider p {
+  margin: 0;
+
+  color: #817482;
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   SOCIAL BUTTONS
+========================================= */
+
+.social-buttons {
+  display: flex;
+
+  justify-content: center;
+
+  gap: 30px;
+}
+
+.social-button {
+  width: 50px;
+  height: 50px;
+
+  border: 1px solid #e4d9d7;
+
+  border-radius: 50%;
+
+  background: #fffaf8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 23px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 10px
+    rgba(90, 65, 90, 0.12);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.social-button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 8px 15px
+    rgba(90, 65, 90, 0.16);
+}
+
+.google {
+  color: #4285f4;
+}
+
+.apple {
+  color: #222;
+}
+
+.facebook {
+  color: #1877f2;
+}
+
+
+/* =========================================
+   SIGN UP
+========================================= */
+
+.auth-switch {
+  margin: 18px 0 0;
+
+  text-align: center;
+
+  color: #817482;
+
+  font-size: 12px;
+}
+
+.auth-switch button {
+  margin-left: 5px;
+
+  padding: 0;
+
+  border: none;
+
+  background: none;
+
+  color: #76549d;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.auth-switch button:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 550px) {
+
+  .auth-page {
+    padding: 15px;
+  }
+
+  .auth-card {
+    min-height: auto;
+
+    padding: 28px 18px 20px;
+
+    border-radius: 30px;
+  }
+
+  .auth-heading h1 {
+    font-size: 28px;
+  }
+
+  .auth-character {
+    height: 160px;
+  }
+
+  .character-hair {
+    font-size: 85px;
+  }
+
+  .character-body {
+    font-size: 125px;
+  }
+
+  .auth-form-card {
+    padding: 18px 13px 15px;
+
+    border-radius: 25px;
+  }
+
+  .cloud,
+  .flower {
+    display: none;
+  }
+}

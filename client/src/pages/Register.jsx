@@ -2,133 +2,172 @@ import { useState } from "react";
 import axios from "axios";
 
 function Register() {
-
   const [name, setName] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [message, setMessage] = useState("");
 
-
   const handleRegister = async (e) => {
-
     e.preventDefault();
-
     setMessage("");
 
-
     try {
-
       const response = await axios.post(
         "http://localhost:5000/api/auth/register",
         {
           name,
           email,
-          password
+          password,
         }
       );
 
+      console.log(response.data);
 
-      console.log(
-        "Registration successful:",
-        response.data
-      );
+      setMessage("Registration successful!");
 
-
-      setMessage(
-        "Registration successful!"
-      );
-
-
-      // Clear form
       setName("");
       setEmail("");
       setPassword("");
-
     } catch (error) {
-
-      console.error(
-        "Registration error:",
-        error
-      );
-
+      console.error("Registration error:", error);
 
       setMessage(
         error.response?.data?.message ||
-        "Registration failed"
+          "Registration failed"
       );
-
     }
-
   };
 
-
   return (
-    <div className="register-page">
+    <div className="auth-page">
 
-      <div className="register-box">
-
-        <h1>Yappr</h1>
-
-        <h2>Create Account</h2>
-
-
-        <form onSubmit={handleRegister}>
-
-          {/* Name */}
-
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-
-
-          {/* Email */}
-
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-
-          {/* Password */}
-
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-
-          {/* Register button */}
-
-          <button type="submit">
-            Register
-          </button>
-
-        </form>
-
-
-        {/* Result message */}
-
-        {message && (
-          <p>
-            {message}
-          </p>
-        )}
-
+      {/* Decorations */}
+      <div className="auth-decoration cloud cloud-one">
+        ☁
       </div>
 
+      <div className="auth-decoration cloud cloud-two">
+        ☁
+      </div>
+
+      <div className="auth-decoration flower flower-one">
+        🌷
+      </div>
+
+      <div className="auth-card">
+
+        {/* Heading */}
+        <div className="auth-heading">
+          <h1>Create Account</h1>
+
+          <p>
+            Join Yappr and start chatting
+          </p>
+        </div>
+
+        {/* Character */}
+        <div className="auth-character">
+          <img
+            src="/images/yappr-girl.png"
+            alt="Yappr girl"
+            className="yappr-girl"
+          />
+        </div>
+
+        {/* Registration Form */}
+        <div className="auth-form-card">
+
+          {message && (
+            <div
+              className={
+                message === "Registration successful!"
+                  ? "auth-success"
+                  : "auth-error"
+              }
+            >
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister}>
+
+            {/* Name */}
+            <div className="auth-input-wrapper">
+              <div className="auth-input-icon">
+                👤
+              </div>
+
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) =>
+                  setName(e.target.value)
+                }
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="auth-input-wrapper">
+              <div className="auth-input-icon">
+                ✉️
+              </div>
+
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div className="auth-input-wrapper">
+              <div className="auth-input-icon">
+                🔒
+              </div>
+
+              <input
+                type="password"
+                placeholder="Create Password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                required
+              />
+            </div>
+
+            {/* Register Button */}
+            <button
+              type="submit"
+              className="auth-button"
+            >
+              Create Account
+            </button>
+
+          </form>
+
+          {/* Login Link */}
+          <p className="auth-switch">
+            Already have an account?
+
+            <button
+              type="button"
+              onClick={() =>
+                (window.location.href = "/login")
+              }
+            >
+              Login
+            </button>
+          </p>
+
+        </div>
+      </div>
     </div>
   );
 }

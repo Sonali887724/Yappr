@@ -4,21 +4,25 @@ import axios from "axios";
 function ChatWindow({
   selectedUser,
   currentUser,
-  socket
+  socket,
+  onMessageSent
 }) {
 
   const [message, setMessage] = useState("");
-
   const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
+  // Timer for sender
+  const typingTimeoutRef = useRef(null);
 
-  // Get JWT token
+  // Timer for receiver
+  const receiverTypingTimeoutRef = useRef(null);
+
+  // JWT token
   const token = localStorage.getItem("token");
 
-
-  // Axios configuration for protected requests
   const authConfig = {
     headers: {
       Authorization: `Bearer ${token}`
@@ -26,13 +30,15 @@ function ChatWindow({
   };
 
 
-  // Listen for real-time messages
+  // ==========================================
+  // RECEIVE REAL-TIME MESSAGE
+  // ==========================================
+
   useEffect(() => {
 
     if (!socket || !currentUser || !selectedUser) {
       return;
     }
-
 
     const handleReceiveMessage = (newMessage) => {
 
@@ -41,25 +47,19 @@ function ChatWindow({
         newMessage
       );
 
-
-      // Check whether message belongs to
-      // the currently selected conversation
       if (
         newMessage.sender === selectedUser._id &&
         newMessage.receiver === currentUser._id
       ) {
 
         setMessages((previousMessages) => [
-
           ...previousMessages,
-
           {
             id: newMessage._id,
             sender: selectedUser.name,
             text: newMessage.text,
             createdAt: newMessage.createdAt
           }
-
         ]);
 
       }
@@ -85,7 +85,154 @@ function ChatWindow({
   }, [socket, selectedUser, currentUser]);
 
 
-  // Get messages from MongoDB
+  // ==========================================
+  // RECEIVE TYPING EVENT
+  // ==========================================
+
+  useEffect(() => {
+
+    if (!socket || !currentUser || !selectedUser) {
+      return;
+    }
+
+
+    const handleUserTyping = (data) => {
+
+      console.log(
+        "USER TYPING EVENT RECEIVED:",
+        data
+      );
+
+
+      if (
+        data.sender === selectedUser._id
+      ) {
+
+        console.log(
+          "Typing user matches selected user"
+        );
+
+        console.log(
+          "SETTING isTyping TO TRUE"
+        );
+
+
+        // Show typing indicator
+        setIsTyping(true);
+
+
+        // Clear previous receiver timer
+        if (
+          receiverTypingTimeoutRef.current
+        ) {
+
+          clearTimeout(
+            receiverTypingTimeoutRef.current
+          );
+
+        }
+
+
+        // Keep indicator visible
+        // until typing stops
+        receiverTypingTimeoutRef.current =
+          setTimeout(() => {
+
+            console.log(
+              "RECEIVER TYPING TIMEOUT"
+            );
+
+            setIsTyping(false);
+
+          }, 3500);
+
+      }
+
+    };
+
+
+    const handleUserStopTyping = (data) => {
+
+      console.log(
+        "USER STOP TYPING EVENT RECEIVED:",
+        data
+      );
+
+
+      if (
+        data.sender === selectedUser._id
+      ) {
+
+        console.log(
+          "STOP TYPING MATCHED USER"
+        );
+
+        setIsTyping(false);
+
+
+        if (
+          receiverTypingTimeoutRef.current
+        ) {
+
+          clearTimeout(
+            receiverTypingTimeoutRef.current
+          );
+
+          receiverTypingTimeoutRef.current =
+            null;
+
+        }
+
+      }
+
+    };
+
+
+    socket.on(
+      "user_typing",
+      handleUserTyping
+    );
+
+
+    socket.on(
+      "user_stop_typing",
+      handleUserStopTyping
+    );
+
+
+    return () => {
+
+      socket.off(
+        "user_typing",
+        handleUserTyping
+      );
+
+
+      socket.off(
+        "user_stop_typing",
+        handleUserStopTyping
+      );
+
+
+      if (
+        receiverTypingTimeoutRef.current
+      ) {
+
+        clearTimeout(
+          receiverTypingTimeoutRef.current
+        );
+
+      }
+
+    };
+
+  }, [socket, selectedUser, currentUser]);
+
+
+  // ==========================================
+  // GET OLD MESSAGES
+  // ==========================================
+
   useEffect(() => {
 
     if (!selectedUser || !currentUser) {
@@ -100,25 +247,28 @@ function ChatWindow({
       )
       .then((response) => {
 
-        const formattedMessages = response.data.map(
-          (item) => ({
+        const formattedMessages =
+          response.data.map(
+            (item) => ({
 
-            id: item._id,
+              id: item._id,
 
-            sender:
-              item.sender === currentUser._id
-                ? "You"
-                : selectedUser.name,
+              sender:
+                item.sender === currentUser._id
+                  ? "You"
+                  : selectedUser.name,
 
-            text: item.text,
+              text: item.text,
 
-            createdAt: item.createdAt
+              createdAt: item.createdAt
 
-          })
+            })
+          );
+
+
+        setMessages(
+          formattedMessages
         );
-
-
-        setMessages(formattedMessages);
 
       })
       .catch((error) => {
@@ -133,17 +283,125 @@ function ChatWindow({
   }, [selectedUser, currentUser]);
 
 
-  // Scroll to latest message
+  // ==========================================
+  // SCROLL TO BOTTOM
+  // ==========================================
+
   useEffect(() => {
 
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth"
-    });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
 
-  }, [messages]);
+  }, [messages, isTyping]);
 
 
-  // Send message
+  // ==========================================
+  // HANDLE TYPING
+  // ==========================================
+
+  const handleTyping = (e) => {
+
+    const value = e.target.value;
+
+    console.log(
+      "TYPING FUNCTION CALLED:",
+      value
+    );
+
+    setMessage(value);
+
+
+    // Clear previous sender timer
+    if (typingTimeoutRef.current) {
+
+      clearTimeout(
+        typingTimeoutRef.current
+      );
+
+    }
+
+
+    if (!socket) {
+
+      console.log(
+        "NO SOCKET AVAILABLE"
+      );
+
+      return;
+
+    }
+
+
+    if (!currentUser) {
+
+      console.log(
+        "NO CURRENT USER"
+      );
+
+      return;
+
+    }
+
+
+    if (!selectedUser) {
+
+      console.log(
+        "NO SELECTED USER"
+      );
+
+      return;
+
+    }
+
+
+    console.log(
+      "SENDING TYPING EVENT:",
+      {
+        sender: currentUser._id,
+        receiver: selectedUser._id
+      }
+    );
+
+
+    // Tell receiver that user is typing
+    socket.emit(
+      "typing",
+      {
+        sender: currentUser._id,
+        receiver: selectedUser._id
+      }
+    );
+
+
+    // Tell receiver that typing stopped
+    // after 3 seconds
+    typingTimeoutRef.current =
+      setTimeout(() => {
+
+        console.log(
+          "SENDING STOP TYPING EVENT"
+        );
+
+
+        socket.emit(
+          "stop_typing",
+          {
+            sender: currentUser._id,
+            receiver: selectedUser._id
+          }
+        );
+
+      }, 3000);
+
+  };
+
+
+  // ==========================================
+  // SEND MESSAGE
+  // ==========================================
+
   const handleSend = async () => {
 
     if (message.trim() === "") {
@@ -153,36 +411,69 @@ function ChatWindow({
 
     try {
 
-      const response = await axios.post(
+      const response =
+        await axios.post(
 
-        "http://localhost:5000/api/messages",
+          "http://localhost:5000/api/messages",
 
-        {
-          sender: currentUser._id,
-          receiver: selectedUser._id,
-          text: message
-        },
+          {
+            receiver: selectedUser._id,
+            text: message
+          },
 
-        authConfig
+          authConfig
 
+        );
+
+
+      setMessages(
+        (previousMessages) => [
+
+          ...previousMessages,
+
+          {
+            id: response.data._id,
+            sender: "You",
+            text: response.data.text,
+            createdAt:
+              response.data.createdAt
+          }
+
+        ]
       );
 
 
-      setMessages((previousMessages) => [
-
-        ...previousMessages,
-
-        {
-          id: response.data._id,
-          sender: "You",
-          text: response.data.text,
-          createdAt: response.data.createdAt
-        }
-
-      ]);
-
-
       setMessage("");
+
+      if (onMessageSent) {
+        onMessageSent();
+      }
+
+
+      // Stop typing
+      if (typingTimeoutRef.current) {
+
+        clearTimeout(
+          typingTimeoutRef.current
+        );
+
+        typingTimeoutRef.current =
+          null;
+
+      }
+
+
+      if (socket) {
+
+        socket.emit(
+          "stop_typing",
+          {
+            sender: currentUser._id,
+            receiver: selectedUser._id
+          }
+        );
+
+      }
 
     } catch (error) {
 
@@ -196,49 +487,83 @@ function ChatWindow({
   };
 
 
-  // Send message when Enter is pressed
+  // ==========================================
+  // ENTER TO SEND
+  // ==========================================
+
   const handleKeyDown = (e) => {
 
     if (e.key === "Enter") {
+
       handleSend();
+
     }
 
   };
 
 
-  // Format message time
+  // ==========================================
+  // FORMAT TIME
+  // ==========================================
+
   const formatTime = (date) => {
 
-    return new Date(date).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    return new Date(date).toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    );
 
   };
 
 
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
+
     <div className="chat-window">
+
 
       {/* Chat Header */}
 
       <div className="chat-header">
 
         <div className="avatar">
+
           {selectedUser.name.charAt(0)}
+
         </div>
 
 
         <div>
 
           <h3>
+
             {selectedUser.name}
+
           </h3>
 
-          <p>
-            {selectedUser.status}
-          </p>
 
+          <div className="chat-user-status">
+
+            <span
+              className={
+                selectedUser.status === "Online"
+                  ? "online-dot"
+                  : "offline-dot"
+              }
+            >
+            </span>
+
+            <p>
+              {selectedUser.status}
+            </p>
+
+          </div>
         </div>
 
       </div>
@@ -246,7 +571,7 @@ function ChatWindow({
 
       {/* Messages */}
 
-      <div className="messages">
+      <div className="messages" ref={messagesContainerRef}>
 
         {messages.map((message) => (
 
@@ -260,12 +585,18 @@ function ChatWindow({
           >
 
             <p>
+
               {message.text}
+
             </p>
 
 
             <span className="message-time">
-              {formatTime(message.createdAt)}
+
+              {formatTime(
+                message.createdAt
+              )}
+
             </span>
 
           </div>
@@ -273,7 +604,17 @@ function ChatWindow({
         ))}
 
 
-        <div ref={messagesEndRef}></div>
+        {/* Typing Indicator */}
+
+        {isTyping && (
+
+          <div className="typing-indicator">
+
+            {selectedUser.name} is typing...
+
+          </div>
+
+        )}
 
       </div>
 
@@ -286,19 +627,25 @@ function ChatWindow({
           type="text"
           placeholder="Type a message..."
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleTyping}
           onKeyDown={handleKeyDown}
         />
 
 
-        <button onClick={handleSend}>
+        <button
+          onClick={handleSend}
+        >
+
           Send
+
         </button>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default ChatWindow;

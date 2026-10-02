@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+
 import {
   BrowserRouter,
   Routes,
@@ -10,29 +11,127 @@ import {
 
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
+
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 
-import "./App.css";
+import "./styles/app.css";
+import "./styles/sidebar.css";
+import "./styles/chat.css";
+import "./styles/auth.css";
+import "./styles/responsive.css";
 
 
 function ChatApp() {
 
   const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] =
+    useState(null);
 
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [currentUser, setCurrentUser] =
+    useState(null);
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [socket, setSocket] =
+    useState(null);
 
-  const [socket, setSocket] = useState(null);
+
+  // =====================================================
+  // FETCH MY CONVERSATIONS
+  // =====================================================
+
+  const fetchConversations = async () => {
+
+    if (!currentUser) {
+      return;
+    }
+
+    const token =
+      localStorage.getItem("token");
+
+    if (!token) {
+      return;
+    }
 
 
-  // Get logged-in user from localStorage
+    try {
+
+      const response =
+        await axios.get(
+          "http://localhost:5000/api/conversations",
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+        );
+
+
+      console.log(
+        "Conversations fetched:",
+        response.data
+      );
+
+
+      const chatUsers =
+        response.data.map(
+          (conversation) => {
+
+            const otherUser =
+              conversation.participants.find(
+                (user) =>
+                  user._id !==
+                  currentUser._id
+              );
+
+
+            if (!otherUser) {
+              return null;
+            }
+
+
+            return {
+
+              ...otherUser,
+
+              lastMessage:
+                conversation.lastMessage
+
+            };
+
+          }
+        )
+        .filter(Boolean);
+
+
+      console.log(
+        "Chat users:",
+        chatUsers
+      );
+
+
+      setUsers(chatUsers);
+
+    } catch (error) {
+
+      console.error(
+        "Error fetching conversations:",
+        error
+      );
+
+    }
+
+  };
+
+
+  // =====================================================
+  // GET CURRENT USER FROM LOCAL STORAGE
+  // =====================================================
+
   useEffect(() => {
 
     const savedUser =
       localStorage.getItem("user");
-
 
     if (savedUser) {
 
@@ -45,57 +144,21 @@ function ChatApp() {
   }, []);
 
 
-  // Get users from backend
-  // This runs only after currentUser is loaded
+  // =====================================================
+  // FETCH CONVERSATIONS
+  // =====================================================
+
   useEffect(() => {
 
-    if (!currentUser) {
-      return;
-    }
-
-
-    const token =
-      localStorage.getItem("token");
-
-
-    if (!token) {
-      return;
-    }
-
-
-    axios
-      .get(
-        "http://localhost:5000/api/users",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-      .then((response) => {
-
-        console.log(
-          "Users fetched successfully:",
-          response.data
-        );
-
-
-        setUsers(response.data);
-
-      })
-      .catch((error) => {
-
-        console.error(
-          "Error fetching users:",
-          error
-        );
-
-      });
+    fetchConversations();
 
   }, [currentUser]);
 
 
-  // Create ONE Socket.IO connection
+  // =====================================================
+  // SOCKET.IO CONNECTION
+  // =====================================================
+
   useEffect(() => {
 
     if (!currentUser) {
@@ -116,7 +179,6 @@ function ChatApp() {
     setSocket(newSocket);
 
 
-    // Socket connected
     newSocket.on("connect", () => {
 
       console.log(
@@ -125,7 +187,6 @@ function ChatApp() {
       );
 
 
-      // Join current user's room
       newSocket.emit(
         "join",
         currentUser._id
@@ -134,7 +195,8 @@ function ChatApp() {
     });
 
 
-    // Listen for status changes
+    // USER ONLINE / OFFLINE STATUS
+
     newSocket.on(
       "user_status_changed",
       (data) => {
@@ -146,44 +208,48 @@ function ChatApp() {
         );
 
 
-        // Update users list
-        setUsers((previousUsers) =>
-          previousUsers.map((user) =>
-            user._id === data.userId
-              ? {
-                  ...user,
-                  status: data.status
-                }
-              : user
-          )
+        setUsers(
+          (previousUsers) =>
+
+            previousUsers.map(
+              (user) =>
+
+                user._id === data.userId
+                  ? {
+                      ...user,
+                      status: data.status
+                    }
+                  : user
+            )
+
         );
 
 
-        // Update selected user's status
-        setSelectedUser((previousUser) => {
+        setSelectedUser(
+          (previousUser) => {
 
-          if (
-            previousUser &&
-            previousUser._id === data.userId
-          ) {
+            if (
+              previousUser &&
+              previousUser._id ===
+                data.userId
+            ) {
 
-            return {
-              ...previousUser,
-              status: data.status
-            };
+              return {
+                ...previousUser,
+                status: data.status
+              };
+
+            }
+
+            return previousUser;
 
           }
-
-
-          return previousUser;
-
-        });
+        );
 
       }
     );
 
 
-    // Cleanup Socket.IO connection
     return () => {
 
       console.log(
@@ -201,45 +267,10 @@ function ChatApp() {
   }, [currentUser]);
 
 
-  // Select first chat user
-  useEffect(() => {
+  // =====================================================
+  // LOGOUT
+  // =====================================================
 
-    if (
-      !currentUser ||
-      users.length === 0
-    ) {
-      return;
-    }
-
-
-    if (selectedUser) {
-      return;
-    }
-
-
-    const firstChatUser =
-      users.find(
-        (user) =>
-          user._id !== currentUser._id
-      );
-
-
-    if (firstChatUser) {
-
-      setSelectedUser(
-        firstChatUser
-      );
-
-    }
-
-  }, [
-    currentUser,
-    users,
-    selectedUser
-  ]);
-
-
-  // Logout
   const handleLogout = () => {
 
     localStorage.removeItem("token");
@@ -267,45 +298,146 @@ function ChatApp() {
   };
 
 
+  // =====================================================
+  // START CHAT
+  // =====================================================
+
+  const handleStartChat = async (user) => {
+
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+
+      const response =
+        await axios.post(
+
+          "http://localhost:5000/api/conversations",
+
+          {
+            userId: user._id
+          },
+
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+
+        );
+
+
+      console.log(
+        "Conversation created/found:",
+        response.data
+      );
+
+
+      const otherUser =
+        response.data.participants.find(
+          (participant) =>
+            participant._id !==
+            currentUser._id
+        );
+
+
+      if (!otherUser) {
+        return;
+      }
+
+
+      setUsers(
+        (previousUsers) => {
+
+          const alreadyExists =
+            previousUsers.some(
+              (existingUser) =>
+                existingUser._id ===
+                otherUser._id
+            );
+
+
+          if (alreadyExists) {
+
+            return previousUsers.map(
+              (existingUser) =>
+                existingUser._id ===
+                otherUser._id
+                  ? {
+                      ...existingUser,
+                      ...otherUser
+                    }
+                  : existingUser
+            );
+
+          }
+
+
+          return [
+
+            ...previousUsers,
+
+            {
+              ...otherUser,
+              lastMessage: null
+            }
+
+          ];
+
+        }
+      );
+
+
+      setSelectedUser(
+        otherUser
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error starting conversation:",
+        error
+      );
+
+    }
+
+  };
+
+
+  // =====================================================
+  // MAIN UI
+  // =====================================================
+
   return (
+
     <div className="app">
 
-      {/* Logged-in user */}
-
-      {currentUser && (
-
-        <div className="current-user-selector">
-
-          <label>
-            Logged in as:
-          </label>
-
-
-          <strong>
-            {currentUser.name}
-          </strong>
-
-
-          <button
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-
-        </div>
-
-      )}
-
-
       <Sidebar
-        users={users.filter(
-          (user) =>
-            user._id !== currentUser?._id
-        )}
-        selectedUser={selectedUser}
+
+        users={users}
+
+        selectedUser={
+          selectedUser
+        }
+
         setSelectedUser={
           setSelectedUser
         }
+
+        currentUser={
+          currentUser
+        }
+
+        handleLogout={
+          handleLogout
+        }
+
+        handleStartChat={
+          handleStartChat
+        }
+
       />
 
 
@@ -313,29 +445,38 @@ function ChatApp() {
         currentUser && (
 
           <ChatWindow
+
             selectedUser={
               selectedUser
             }
+
             currentUser={
               currentUser
             }
-            socket={socket}
+
+            socket={
+              socket
+            }
+
+            onMessageSent={
+              fetchConversations
+            }
+
           />
 
         )}
 
     </div>
+
   );
+
 }
 
 
-/*
-  Protected Route
+// =====================================================
+// PROTECTED ROUTE
+// =====================================================
 
-  This checks whether the user
-  has logged in before allowing
-  access to the chat.
-*/
 function ProtectedRoute({
   children
 }) {
@@ -347,72 +488,81 @@ function ProtectedRoute({
   if (!token) {
 
     return (
+
       <Navigate
         to="/login"
         replace
       />
+
     );
 
   }
 
 
   return children;
+
 }
 
+
+// =====================================================
+// APP
+// =====================================================
 
 function App() {
 
   return (
+
     <BrowserRouter>
 
       <Routes>
 
-        {/* Protected Chat */}
-
         <Route
           path="/"
           element={
+
             <ProtectedRoute>
+
               <ChatApp />
+
             </ProtectedRoute>
+
           }
+
         />
 
-
-        {/* Register */}
 
         <Route
           path="/register"
           element={
             <Register />
           }
+
         />
 
-
-        {/* Login */}
 
         <Route
           path="/login"
           element={
             <Login />
           }
+
         />
 
-
-        {/* Unknown URL */}
 
         <Route
           path="*"
           element={
             <Navigate to="/" />
           }
+
         />
 
       </Routes>
 
     </BrowserRouter>
-  );
-}
 
+  );
+
+}
 
 export default App;
