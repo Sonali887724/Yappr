@@ -533,9 +533,14 @@ function ChatWindow({
       <div className="chat-header">
 
         <div className="avatar">
-
-          {selectedUser.name.charAt(0)}
-
+          {selectedUser.profilePicture ? (
+            <img
+              src={selectedUser.profilePicture}
+              alt="Profile"
+            />
+          ) : (
+            selectedUser.name.charAt(0).toUpperCase()
+          )}
         </div>
 
 

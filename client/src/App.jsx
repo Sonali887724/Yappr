@@ -14,6 +14,7 @@ import ChatWindow from "./components/ChatWindow";
 
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 import "./styles/app.css";
 import "./styles/sidebar.css";
@@ -125,21 +126,76 @@ function ChatApp() {
 
 
   // =====================================================
-  // GET CURRENT USER FROM LOCAL STORAGE
+  // GET CURRENT USER FROM BACKEND
   // =====================================================
 
   useEffect(() => {
 
-    const savedUser =
-      localStorage.getItem("user");
+    const fetchCurrentUser = async () => {
 
-    if (savedUser) {
+      const token =
+        localStorage.getItem("token");
 
-      setCurrentUser(
-        JSON.parse(savedUser)
-      );
+      if (!token) {
+        return;
+      }
 
-    }
+
+      try {
+
+        const response =
+          await axios.get(
+            "http://localhost:5000/api/profile",
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+
+        const latestUser =
+          response.data.user;
+
+
+        setCurrentUser(
+          latestUser
+        );
+
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(latestUser)
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Error fetching current user:",
+          error
+        );
+
+
+        const savedUser =
+          localStorage.getItem("user");
+
+
+        if (savedUser) {
+
+          setCurrentUser(
+            JSON.parse(savedUser)
+          );
+
+        }
+
+      }
+
+    };
+
+
+    fetchCurrentUser();
 
   }, []);
 
@@ -515,6 +571,17 @@ function App() {
     <BrowserRouter>
 
       <Routes>
+
+        <Route
+          path="/profile"
+          element={
+            localStorage.getItem("token") ? (
+              <Profile />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
 
         <Route
           path="/"

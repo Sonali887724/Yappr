@@ -9,13 +9,13 @@
   align-items: center;
   justify-content: center;
 
-  padding: 30px;
+  padding: 20px;
 
   box-sizing: border-box;
 
   position: relative;
 
-  overflow: hidden;
+  overflow-y: auto; /* Allow scrolling on smaller screens */
 
   background:
     radial-gradient(
@@ -96,54 +96,32 @@
 
 .auth-card {
   width: 100%;
-
-  max-width: 445px;
-
-  min-height: 760px;
-
-  padding: 38px 30px 28px;
-
+  max-width: 440px;
+  padding: 20px 22px 16px; /* Reduced top and bottom padding */
   box-sizing: border-box;
-
   position: relative;
-
-  background:
-    linear-gradient(
-      145deg,
-      #fffaf7,
-      #f6e9e3
-    );
-
+  background: linear-gradient(145deg, #fffaf7, #f6e9e3);
   border: 1px solid rgba(255, 255, 255, 0.75);
-
-  border-radius: 42px;
-
-  box-shadow:
-    0 30px 70px
-    rgba(78, 48, 105, 0.30),
-
-    inset 0 1px 0
-    rgba(255, 255, 255, 0.9);
-
+  border-radius: 36px;
+  box-shadow: 0 30px 70px rgba(78, 48, 105, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 2;
 }
-
 
 /* =========================================
    HEART
 ========================================= */
 
 .auth-heart {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 
-  margin: 0 auto 4px;
+  margin: 0 auto 2px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 27px;
+  font-size: 24px;
 
   color: #ef8791;
 
@@ -166,7 +144,7 @@
 .auth-heading h1 {
   margin: 0;
 
-  font-size: 34px;
+  font-size: 28px;
 
   font-weight: 800;
 
@@ -181,9 +159,9 @@
 .auth-heading h1::before {
   content: "✨";
 
-  font-size: 18px;
+  font-size: 16px;
 
-  margin-right: 8px;
+  margin-right: 6px;
 
   vertical-align: middle;
 }
@@ -191,43 +169,38 @@
 .auth-heading h1::after {
   content: "✨";
 
-  font-size: 18px;
+  font-size: 16px;
 
-  margin-left: 8px;
+  margin-left: 6px;
 
   vertical-align: middle;
 }
 
 .auth-heading p {
-  margin: 7px 0 0;
+  margin: 4px 0 0;
 
-  font-size: 14px;
+  font-size: 13px;
 
   color: #786d83;
 }
 
 
 /* =========================================
-   CHARACTER
+   3D YAPPR GIRL CHARACTER
 ========================================= */
 
 /* =========================================
-   3D YAPPR GIRL
+   3D YAPPR GIRL CHARACTER
 ========================================= */
 
 .auth-character {
-  height: 380px;
-
+  height: 180px; /* Reduced from 240px to fit bottom elements */
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-
   position: relative;
-
-  margin-top: 15px;
-
-  overflow: visible;
-
+  margin: 4px 0;
+  overflow: hidden;
   z-index: 2;
 }
 
@@ -238,10 +211,10 @@
 
   position: absolute;
 
-  width: 210px;
-  height: 130px;
+  width: 220px;
+  height: 120px;
 
-  bottom: 20px;
+  bottom: 10px;
 
   border-radius: 50%;
 
@@ -259,21 +232,12 @@
 /* Actual 3D character */
 
 .yappr-girl {
-  width: 430px;
-
-  max-width: 120%;
-
-  height: auto;
-
+  width: 100%;
+  max-width: 260px; /* Controlled size for perfect balance */
+  max-height: 170px;
+  object-fit: contain;
   display: block;
-
   position: relative;
-
-  top: 0;
-
-  filter: drop-shadow(
-    0 10px 15px rgba(100, 70, 120, 0.12)
-  );
 }
 
 /* =========================================
@@ -281,9 +245,9 @@
 ========================================= */
 
 .auth-form-card {
-  margin-top: -5px;
+  margin-top: 10px;
 
-  padding: 22px 18px 18px;
+  padding: 18px 16px 16px;
 
   background:
     linear-gradient(
@@ -292,7 +256,7 @@
       #f7ebe6
     );
 
-  border-radius: 30px;
+  border-radius: 26px;
 
   box-shadow:
     0 12px 30px
@@ -311,15 +275,15 @@
 ========================================= */
 
 .auth-input-wrapper {
-  height: 54px;
+  height: 48px;
 
   display: flex;
 
   align-items: center;
 
-  margin-bottom: 13px;
+  margin-bottom: 12px;
 
-  padding: 0 13px 0 7px;
+  padding: 0 12px 0 6px;
 
   box-sizing: border-box;
 
@@ -327,7 +291,7 @@
 
   border: 1px solid #eadbd7;
 
-  border-radius: 30px;
+  border-radius: 26px;
 
   box-shadow:
     0 4px 10px
@@ -354,10 +318,10 @@
 /* Input icon */
 
 .auth-input-icon {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 
-  min-width: 42px;
+  min-width: 36px;
 
   display: flex;
   align-items: center;
@@ -372,7 +336,7 @@
       #9874d0
     );
 
-  font-size: 19px;
+  font-size: 16px;
 
   box-shadow:
     0 4px 8px
@@ -389,7 +353,7 @@
 
   min-width: 0;
 
-  margin-left: 12px;
+  margin-left: 10px;
 
   border: none;
 
@@ -423,7 +387,7 @@
 ========================================= */
 
 .forgot-password {
-  margin: 2px 4px 16px;
+  margin: 0 4px 12px;
 
   text-align: right;
 
@@ -442,11 +406,11 @@
 .auth-button {
   width: 100%;
 
-  height: 55px;
+  height: 48px;
 
   border: none;
 
-  border-radius: 30px;
+  border-radius: 26px;
 
   background:
     linear-gradient(
@@ -457,7 +421,7 @@
 
   color: white;
 
-  font-size: 19px;
+  font-size: 17px;
 
   font-weight: 700;
 
@@ -493,9 +457,9 @@
 ========================================= */
 
 .auth-error {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 
-  padding: 10px 12px;
+  padding: 8px 10px;
 
   border-radius: 12px;
 
@@ -522,7 +486,7 @@
 
   gap: 10px;
 
-  margin: 20px 0 14px;
+  margin: 14px 0 10px;
 }
 
 .auth-divider span {
@@ -551,12 +515,12 @@
 
   justify-content: center;
 
-  gap: 30px;
+  gap: 20px;
 }
 
 .social-button {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
 
   border: 1px solid #e4d9d7;
 
@@ -568,7 +532,7 @@
   align-items: center;
   justify-content: center;
 
-  font-size: 23px;
+  font-size: 20px;
 
   font-weight: 700;
 
@@ -584,7 +548,7 @@
 }
 
 .social-button:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 
   box-shadow:
     0 8px 15px
@@ -609,7 +573,7 @@
 ========================================= */
 
 .auth-switch {
-  margin: 18px 0 0;
+  margin: 14px 0 0;
 
   text-align: center;
 
@@ -642,43 +606,39 @@
 
 
 /* =========================================
-   MOBILE
+   MOBILE & SHORT SCREENS
+========================================= */
+
+/* =========================================
+   MOBILE & SHORT SCREENS
 ========================================= */
 
 @media (max-width: 550px) {
 
   .auth-page {
-    padding: 15px;
+    padding: 10px;
   }
 
   .auth-card {
-    min-height: auto;
-
-    padding: 28px 18px 20px;
-
-    border-radius: 30px;
+    padding: 20px 16px 16px;
+    border-radius: 28px;
   }
 
   .auth-heading h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .auth-character {
-    height: 160px;
+    height: 180px;
   }
 
-  .character-hair {
-    font-size: 85px;
-  }
-
-  .character-body {
-    font-size: 125px;
+  .yappr-girl {
+    width: 220px !important;
   }
 
   .auth-form-card {
-    padding: 18px 13px 15px;
-
-    border-radius: 25px;
+    padding: 14px 12px 12px;
+    border-radius: 20px;
   }
 
   .cloud,

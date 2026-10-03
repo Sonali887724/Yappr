@@ -21,11 +21,14 @@ const userSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Offline"
+    },
+
+    profilePicture: {
+      type: String,
+      default: ""
     }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
