@@ -56,7 +56,6 @@ function ChatApp() {
       return;
     }
 
-
     try {
 
       const response =
@@ -78,34 +77,35 @@ function ChatApp() {
 
 
       const chatUsers =
-        response.data.map(
-          (conversation) => {
+        response.data
+          .map(
+            (conversation) => {
 
-            const otherUser =
-              conversation.participants.find(
-                (user) =>
-                  user._id !==
-                  currentUser._id
-              );
+              const otherUser =
+                conversation.participants.find(
+                  (user) =>
+                    user._id !==
+                    currentUser._id
+                );
 
 
-            if (!otherUser) {
-              return null;
+              if (!otherUser) {
+                return null;
+              }
+
+
+              return {
+
+                ...otherUser,
+
+                lastMessage:
+                  conversation.lastMessage
+
+              };
+
             }
-
-
-            return {
-
-              ...otherUser,
-
-              lastMessage:
-                conversation.lastMessage
-
-            };
-
-          }
-        )
-        .filter(Boolean);
+          )
+          .filter(Boolean);
 
 
       console.log(
@@ -202,7 +202,6 @@ function ChatApp() {
 
     fetchCurrentUser();
 
-
   }, []);
 
 
@@ -283,7 +282,6 @@ function ChatApp() {
                     }
                   : user
             )
-
         );
 
 
@@ -329,7 +327,6 @@ function ChatApp() {
       setSocket(null);
 
     };
-
 
   }, [currentUser]);
 
@@ -440,7 +437,6 @@ function ChatApp() {
                     }
 
                   : existingUser
-
             );
 
           }
@@ -484,7 +480,7 @@ function ChatApp() {
 
   return (
 
-    <div className="app">
+    <div className={`app ${selectedUser ? "chat-open" : ""}`}>
 
       <Sidebar
 
@@ -532,6 +528,10 @@ function ChatApp() {
 
             onMessageSent={
               fetchConversations
+            }
+
+            onBack={() =>
+              setSelectedUser(null)
             }
 
           />
@@ -617,7 +617,6 @@ function App() {
             </ProtectedRoute>
 
           }
-
         />
 
 
