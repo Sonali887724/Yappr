@@ -26,7 +26,7 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://yappr-1-xgu9.onrender.com",
     methods: ["GET", "POST"]
   }
 });
@@ -1168,3 +1168,13 @@ server.listen(
 
   }
 );
+
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err);
+
+  res.status(500).json({
+    message: "Something went wrong on the server"
+  });
+});

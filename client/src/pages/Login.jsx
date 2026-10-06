@@ -2,20 +2,29 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        `${API_URL}/api/auth/login`,
         {
           email,
           password,
@@ -31,10 +40,25 @@ function Login() {
     } catch (error) {
       console.error("Login error:", error);
 
-      setError(
-        error.response?.data?.message ||
-          "Login failed"
-      );
+      if (error.response) {
+        // Server responded with an error
+        setError(
+          error.response.data?.message ||
+            "Login failed. Please check your details."
+        );
+      } else if (error.request) {
+        // Request was sent but server did not respond
+        setError(
+          "Unable to connect to the server. Please try again."
+        );
+      } else {
+        // Something went wrong before request was sent
+        setError(
+          "Something went wrong. Please try again."
+        );
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,6 +129,7 @@ function Login() {
                   setEmail(e.target.value)
                 }
                 required
+                disabled={isLoading}
               />
 
             </div>
@@ -124,6 +149,7 @@ function Login() {
                   setPassword(e.target.value)
                 }
                 required
+                disabled={isLoading}
               />
 
               <span className="password-eye">
@@ -139,8 +165,9 @@ function Login() {
             <button
               type="submit"
               className="auth-button"
+              disabled={isLoading}
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
             </button>
 
           </form>
@@ -160,6 +187,7 @@ function Login() {
             <button
               type="button"
               className="social-button google"
+              disabled={isLoading}
             >
               G
             </button>
@@ -167,6 +195,7 @@ function Login() {
             <button
               type="button"
               className="social-button apple"
+              disabled={isLoading}
             >
               
             </button>
@@ -174,6 +203,7 @@ function Login() {
             <button
               type="button"
               className="social-button facebook"
+              disabled={isLoading}
             >
               f
             </button>
@@ -190,6 +220,7 @@ function Login() {
               onClick={() =>
                 navigate("/register")
               }
+              disabled={isLoading}
             >
               Sign Up
             </button>

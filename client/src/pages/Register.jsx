@@ -1,19 +1,28 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
     setMessage("");
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        `${API_URL}/api/auth/register`,
         {
           name,
           email,
@@ -31,10 +40,25 @@ function Register() {
     } catch (error) {
       console.error("Registration error:", error);
 
-      setMessage(
-        error.response?.data?.message ||
-          "Registration failed"
-      );
+      if (error.response) {
+        // Server responded with an error
+        setMessage(
+          error.response.data?.message ||
+            "Registration failed. Please check your details."
+        );
+      } else if (error.request) {
+        // Request was sent but server did not respond
+        setMessage(
+          "Unable to connect to the server. Please try again."
+        );
+      } else {
+        // Something went wrong before request was sent
+        setMessage(
+          "Something went wrong. Please try again."
+        );
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,6 +129,7 @@ function Register() {
                   setName(e.target.value)
                 }
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -122,6 +147,7 @@ function Register() {
                   setEmail(e.target.value)
                 }
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -139,6 +165,7 @@ function Register() {
                   setPassword(e.target.value)
                 }
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -146,8 +173,11 @@ function Register() {
             <button
               type="submit"
               className="auth-button"
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading
+                ? "Creating account..."
+                : "Create Account"}
             </button>
 
           </form>
@@ -161,6 +191,7 @@ function Register() {
               onClick={() =>
                 (window.location.href = "/login")
               }
+              disabled={isLoading}
             >
               Login
             </button>

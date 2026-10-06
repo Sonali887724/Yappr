@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 import {
   BrowserRouter,
   Routes,
@@ -26,6 +28,7 @@ import "./styles/responsive.css";
 function ChatApp() {
 
   const [users, setUsers] = useState([]);
+
   const [selectedUser, setSelectedUser] =
     useState(null);
 
@@ -58,7 +61,7 @@ function ChatApp() {
 
       const response =
         await axios.get(
-          "http://localhost:5000/api/conversations",
+          `${API_URL}/api/conversations`,
           {
             headers: {
               Authorization:
@@ -113,6 +116,7 @@ function ChatApp() {
 
       setUsers(chatUsers);
 
+
     } catch (error) {
 
       console.error(
@@ -136,6 +140,7 @@ function ChatApp() {
       const token =
         localStorage.getItem("token");
 
+
       if (!token) {
         return;
       }
@@ -145,7 +150,7 @@ function ChatApp() {
 
         const response =
           await axios.get(
-            "http://localhost:5000/api/profile",
+            `${API_URL}/api/profile`,
             {
               headers: {
                 Authorization:
@@ -197,6 +202,7 @@ function ChatApp() {
 
     fetchCurrentUser();
 
+
   }, []);
 
 
@@ -229,7 +235,7 @@ function ChatApp() {
 
 
     const newSocket =
-      io("http://localhost:5000");
+      io(`${API_URL}`);
 
 
     setSocket(newSocket);
@@ -291,11 +297,15 @@ function ChatApp() {
             ) {
 
               return {
+
                 ...previousUser,
+
                 status: data.status
+
               };
 
             }
+
 
             return previousUser;
 
@@ -319,6 +329,7 @@ function ChatApp() {
       setSocket(null);
 
     };
+
 
   }, [currentUser]);
 
@@ -369,7 +380,7 @@ function ChatApp() {
       const response =
         await axios.post(
 
-          "http://localhost:5000/api/conversations",
+          `${API_URL}/api/conversations`,
 
           {
             userId: user._id
@@ -419,13 +430,17 @@ function ChatApp() {
 
             return previousUsers.map(
               (existingUser) =>
+
                 existingUser._id ===
                 otherUser._id
+
                   ? {
                       ...existingUser,
                       ...otherUser
                     }
+
                   : existingUser
+
             );
 
           }
@@ -449,6 +464,7 @@ function ChatApp() {
       setSelectedUser(
         otherUser
       );
+
 
     } catch (error) {
 
@@ -575,13 +591,20 @@ function App() {
         <Route
           path="/profile"
           element={
+
             localStorage.getItem("token") ? (
+
               <Profile />
+
             ) : (
+
               <Navigate to="/login" />
+
             )
+
           }
         />
+
 
         <Route
           path="/"
@@ -603,7 +626,6 @@ function App() {
           element={
             <Register />
           }
-
         />
 
 
@@ -612,7 +634,6 @@ function App() {
           element={
             <Login />
           }
-
         />
 
 
@@ -621,7 +642,6 @@ function App() {
           element={
             <Navigate to="/" />
           }
-
         />
 
       </Routes>
@@ -631,5 +651,6 @@ function App() {
   );
 
 }
+
 
 export default App;

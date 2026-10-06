@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 function ChatWindow({
   selectedUser,
@@ -9,10 +13,16 @@ function ChatWindow({
 }) {
 
   const [message, setMessage] = useState("");
+
   const [messages, setMessages] = useState([]);
+
   const [isTyping, setIsTyping] = useState(false);
 
+  const [error, setError] = useState("");
+
+
   const messagesContainerRef = useRef(null);
+
 
   // Timer for sender
   const typingTimeoutRef = useRef(null);
@@ -20,8 +30,10 @@ function ChatWindow({
   // Timer for receiver
   const receiverTypingTimeoutRef = useRef(null);
 
+
   // JWT token
   const token = localStorage.getItem("token");
+
 
   const authConfig = {
     headers: {
@@ -40,6 +52,7 @@ function ChatWindow({
       return;
     }
 
+
     const handleReceiveMessage = (newMessage) => {
 
       console.log(
@@ -47,19 +60,23 @@ function ChatWindow({
         newMessage
       );
 
+
       if (
         newMessage.sender === selectedUser._id &&
         newMessage.receiver === currentUser._id
       ) {
 
         setMessages((previousMessages) => [
+
           ...previousMessages,
+
           {
             id: newMessage._id,
             sender: selectedUser.name,
             text: newMessage.text,
             createdAt: newMessage.createdAt
           }
+
         ]);
 
       }
@@ -112,6 +129,7 @@ function ChatWindow({
           "Typing user matches selected user"
         );
 
+
         console.log(
           "SETTING isTyping TO TRUE"
         );
@@ -142,6 +160,7 @@ function ChatWindow({
               "RECEIVER TYPING TIMEOUT"
             );
 
+
             setIsTyping(false);
 
           }, 3500);
@@ -167,6 +186,7 @@ function ChatWindow({
           "STOP TYPING MATCHED USER"
         );
 
+
         setIsTyping(false);
 
 
@@ -177,6 +197,7 @@ function ChatWindow({
           clearTimeout(
             receiverTypingTimeoutRef.current
           );
+
 
           receiverTypingTimeoutRef.current =
             null;
@@ -240,11 +261,15 @@ function ChatWindow({
     }
 
 
+    setError("");
+
+
     axios
       .get(
-        `http://localhost:5000/api/messages/${currentUser._id}/${selectedUser._id}`,
+        `${API_URL}/api/messages/${currentUser._id}/${selectedUser._id}`,
         authConfig
       )
+
       .then((response) => {
 
         const formattedMessages =
@@ -271,12 +296,35 @@ function ChatWindow({
         );
 
       })
+
       .catch((error) => {
 
         console.error(
           "Error fetching messages:",
           error
         );
+
+
+        if (error.response) {
+
+          setError(
+            error.response.data?.message ||
+              "Unable to load messages."
+          );
+
+        } else if (error.request) {
+
+          setError(
+            "Unable to connect to the server."
+          );
+
+        } else {
+
+          setError(
+            "Something went wrong while loading messages."
+          );
+
+        }
 
       });
 
@@ -290,8 +338,10 @@ function ChatWindow({
   useEffect(() => {
 
     if (messagesContainerRef.current) {
+
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
+
     }
 
   }, [messages, isTyping]);
@@ -305,10 +355,12 @@ function ChatWindow({
 
     const value = e.target.value;
 
+
     console.log(
       "TYPING FUNCTION CALLED:",
       value
     );
+
 
     setMessage(value);
 
@@ -329,6 +381,7 @@ function ChatWindow({
         "NO SOCKET AVAILABLE"
       );
 
+
       return;
 
     }
@@ -340,6 +393,7 @@ function ChatWindow({
         "NO CURRENT USER"
       );
 
+
       return;
 
     }
@@ -350,6 +404,7 @@ function ChatWindow({
       console.log(
         "NO SELECTED USER"
       );
+
 
       return;
 
@@ -409,12 +464,15 @@ function ChatWindow({
     }
 
 
+    setError("");
+
+
     try {
 
       const response =
         await axios.post(
 
-          "http://localhost:5000/api/messages",
+          `${API_URL}/api/messages`,
 
           {
             receiver: selectedUser._id,
@@ -445,6 +503,7 @@ function ChatWindow({
 
       setMessage("");
 
+
       if (onMessageSent) {
         onMessageSent();
       }
@@ -456,6 +515,7 @@ function ChatWindow({
         clearTimeout(
           typingTimeoutRef.current
         );
+
 
         typingTimeoutRef.current =
           null;
@@ -482,6 +542,28 @@ function ChatWindow({
         error
       );
 
+
+      if (error.response) {
+
+        setError(
+          error.response.data?.message ||
+            "Unable to send message."
+        );
+
+      } else if (error.request) {
+
+        setError(
+          "Unable to connect to the server."
+        );
+
+      } else {
+
+        setError(
+          "Something went wrong while sending the message."
+        );
+
+      }
+
     }
 
   };
@@ -494,9 +576,7 @@ function ChatWindow({
   const handleKeyDown = (e) => {
 
     if (e.key === "Enter") {
-
       handleSend();
-
     }
 
   };
@@ -527,29 +607,32 @@ function ChatWindow({
 
     <div className="chat-window">
 
-
       {/* Chat Header */}
 
       <div className="chat-header">
 
         <div className="avatar">
+
           {selectedUser.profilePicture ? (
+
             <img
               src={selectedUser.profilePicture}
               alt="Profile"
             />
+
           ) : (
+
             selectedUser.name.charAt(0).toUpperCase()
+
           )}
+
         </div>
 
 
         <div>
 
           <h3>
-
             {selectedUser.name}
-
           </h3>
 
 
@@ -564,11 +647,13 @@ function ChatWindow({
             >
             </span>
 
+
             <p>
               {selectedUser.status}
             </p>
 
           </div>
+
         </div>
 
       </div>
@@ -576,7 +661,19 @@ function ChatWindow({
 
       {/* Messages */}
 
-      <div className="messages" ref={messagesContainerRef}>
+      <div
+        className="messages"
+        ref={messagesContainerRef}
+      >
+
+        {error && (
+
+          <div className="auth-error">
+            {error}
+          </div>
+
+        )}
+
 
         {messages.map((message) => (
 
@@ -590,9 +687,7 @@ function ChatWindow({
           >
 
             <p>
-
               {message.text}
-
             </p>
 
 
@@ -640,9 +735,7 @@ function ChatWindow({
         <button
           onClick={handleSend}
         >
-
           Send
-
         </button>
 
       </div>
@@ -652,5 +745,6 @@ function ChatWindow({
   );
 
 }
+
 
 export default ChatWindow;
