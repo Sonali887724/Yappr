@@ -8,7 +8,8 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate
+  Navigate,
+  useNavigate
 } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
@@ -26,6 +27,9 @@ import "./styles/responsive.css";
 
 
 function ChatApp() {
+
+  const navigate = useNavigate();
+
 
   const [users, setUsers] = useState([]);
 
@@ -356,8 +360,8 @@ function ChatApp() {
     setSocket(null);
 
 
-    window.location.href =
-      "/login";
+    // React Router navigation
+    navigate("/login");
 
   };
 
@@ -480,7 +484,13 @@ function ChatApp() {
 
   return (
 
-    <div className={`app ${selectedUser ? "chat-open" : ""}`}>
+    <div
+      className={`app ${
+        selectedUser
+          ? "chat-open"
+          : ""
+      }`}
+    >
 
       <Sidebar
 
@@ -598,7 +608,10 @@ function App() {
 
             ) : (
 
-              <Navigate to="/login" />
+              <Navigate
+                to="/login"
+                replace
+              />
 
             )
 
@@ -639,7 +652,10 @@ function App() {
         <Route
           path="*"
           element={
-            <Navigate to="/" />
+            <Navigate
+              to="/"
+              replace
+            />
           }
         />
 
