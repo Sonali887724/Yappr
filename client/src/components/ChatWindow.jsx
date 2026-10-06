@@ -9,7 +9,8 @@ function ChatWindow({
   selectedUser,
   currentUser,
   socket,
-  onMessageSent
+  onMessageSent,
+  onBack
 }) {
 
   const [message, setMessage] = useState("");
@@ -135,11 +136,9 @@ function ChatWindow({
         );
 
 
-        // Show typing indicator
         setIsTyping(true);
 
 
-        // Clear previous receiver timer
         if (
           receiverTypingTimeoutRef.current
         ) {
@@ -151,8 +150,6 @@ function ChatWindow({
         }
 
 
-        // Keep indicator visible
-        // until typing stops
         receiverTypingTimeoutRef.current =
           setTimeout(() => {
 
@@ -365,7 +362,6 @@ function ChatWindow({
     setMessage(value);
 
 
-    // Clear previous sender timer
     if (typingTimeoutRef.current) {
 
       clearTimeout(
@@ -381,7 +377,6 @@ function ChatWindow({
         "NO SOCKET AVAILABLE"
       );
 
-
       return;
 
     }
@@ -393,7 +388,6 @@ function ChatWindow({
         "NO CURRENT USER"
       );
 
-
       return;
 
     }
@@ -404,7 +398,6 @@ function ChatWindow({
       console.log(
         "NO SELECTED USER"
       );
-
 
       return;
 
@@ -420,7 +413,6 @@ function ChatWindow({
     );
 
 
-    // Tell receiver that user is typing
     socket.emit(
       "typing",
       {
@@ -430,8 +422,6 @@ function ChatWindow({
     );
 
 
-    // Tell receiver that typing stopped
-    // after 3 seconds
     typingTimeoutRef.current =
       setTimeout(() => {
 
@@ -509,7 +499,6 @@ function ChatWindow({
       }
 
 
-      // Stop typing
       if (typingTimeoutRef.current) {
 
         clearTimeout(
@@ -610,6 +599,20 @@ function ChatWindow({
       {/* Chat Header */}
 
       <div className="chat-header">
+
+        {/* Back button */}
+
+        {onBack && (
+
+          <button
+            className="mobile-back-button"
+            onClick={onBack}
+          >
+            ←
+          </button>
+
+        )}
+
 
         <div className="avatar">
 
